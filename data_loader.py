@@ -49,7 +49,7 @@ class CelebA(data.Dataset):
                 idx = self.attr2idx[attr_name]
                 label.append(values[idx] == '1')
 
-            if (i+1) < 2000:
+            if (i+1) < 200:
                 self.test_dataset.append([filename, label])
             else:
                 self.train_dataset.append([filename, label])
@@ -60,7 +60,7 @@ class CelebA(data.Dataset):
         """Return one image and its corresponding attribute label."""
         dataset = self.train_dataset if self.mode == 'train' else self.test_dataset
         filename, label = dataset[index]
-        image = Image.open(os.path.join(self.image_dir, filename))
+        image = Image.open(os.path.join(self.image_dir, filename)).convert("RGB")
         return self.transform(image), torch.FloatTensor(label)
 
     def __len__(self):
@@ -68,13 +68,13 @@ class CelebA(data.Dataset):
         return self.num_images
 
 
-def get_loader(image_dir, attr_path, selected_attrs, crop_size=178, image_size=128, 
+def get_loader(image_dir, attr_path, selected_attrs, crop_size=178, image_size=128,
                batch_size=16, dataset='CelebA', mode='train', num_workers=1):
     """Build and return a data loader."""
     transform = []
     if mode == 'train':
         transform.append(T.RandomHorizontalFlip())
-    transform.append(T.CenterCrop(crop_size))
+    transform.append(T.RandomResizedCrop(crop_size, scale=(1.0, 1.0), ratio=(1.0, 1.0)))
     transform.append(T.Resize(image_size))
     transform.append(T.ToTensor())
     transform.append(T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)))
